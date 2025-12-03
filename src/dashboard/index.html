@@ -530,7 +530,7 @@
             </tr>
           </thead>
           <tbody>
-            ${trades.slice(-10).reverse().map(t => {
+            ${[...trades].sort((a, b) => (b.openTime || 0) - (a.openTime || 0)).slice(0, 10).map(t => {
               const pnlClass = (t.realizedPnL || 0) >= 0 ? 'stat-positive' : 'stat-negative';
               return `
                 <tr>

@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { logger } from '../utils/logger';
+import { logger, generateUniqueId } from '../utils';
 import { Position, Trade, TradingStats } from '../models';
 import { BinanceService } from './binance.service';
 
@@ -104,7 +104,7 @@ export class RiskManagementService {
     this.positions.set(symbol, position);
 
     const trade: Trade = {
-      id: `TRD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `TRD-${generateUniqueId()}`,
       symbol,
       side,
       entryPrice,

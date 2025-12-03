@@ -1,6 +1,6 @@
 import Binance, { Binance as BinanceClient, CandleChartInterval } from 'binance-api-node';
 import { config } from '../config';
-import { logger } from '../utils/logger';
+import { logger, generateUniqueId } from '../utils';
 import { Candle, AccountBalance, Order, OrderSide, OrderType } from '../models';
 
 export class BinanceService {
@@ -93,7 +93,7 @@ export class BinanceService {
     quantity: number,
     price?: number
   ): Promise<Order> {
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const orderId = `ORD-${generateUniqueId()}`;
     const currentPrice = price || await this.getCurrentPrice(symbol);
 
     if (this.paperTrading) {
@@ -102,28 +102,25 @@ export class BinanceService {
 
     try {
       // Create order parameters based on order type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let orderParams: any;
-      
-      if (type === 'MARKET') {
-        orderParams = {
-          symbol,
-          side,
-          type: 'MARKET',
-          quantity: quantity.toString(),
-        };
-      } else {
-        orderParams = {
-          symbol,
-          side,
-          type: 'LIMIT',
-          quantity: quantity.toString(),
-          price: price?.toString() || currentPrice.toString(),
-          timeInForce: 'GTC',
-        };
-      }
+      // Using type assertion due to complex binance-api-node type definitions
+      const orderParams = type === 'MARKET'
+        ? {
+            symbol,
+            side,
+            type: 'MARKET' as const,
+            quantity: quantity.toString(),
+          }
+        : {
+            symbol,
+            side,
+            type: 'LIMIT' as const,
+            quantity: quantity.toString(),
+            price: price?.toString() || currentPrice.toString(),
+            timeInForce: 'GTC' as const,
+          };
 
-      const result = await this.client.order(orderParams);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await this.client.order(orderParams as any);
 
       const order: Order = {
         id: result.orderId.toString(),

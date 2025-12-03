@@ -76,6 +76,21 @@ function getEnvBoolean(key: string, defaultValue: boolean): boolean {
   return value.toLowerCase() === 'true';
 }
 
+type StrategyType = 'RSI' | 'MACD' | 'EMA_CROSSOVER' | 'COMBINED';
+const VALID_STRATEGIES: StrategyType[] = ['RSI', 'MACD', 'EMA_CROSSOVER', 'COMBINED'];
+
+function getStrategyType(key: string, defaultValue: StrategyType): StrategyType {
+  const value = process.env[key]?.toUpperCase();
+  if (value === undefined) {
+    return defaultValue;
+  }
+  if (VALID_STRATEGIES.includes(value as StrategyType)) {
+    return value as StrategyType;
+  }
+  console.warn(`Invalid strategy type "${value}", using default "${defaultValue}"`);
+  return defaultValue;
+}
+
 export function loadConfig(): Config {
   return {
     binance: {
@@ -93,7 +108,7 @@ export function loadConfig(): Config {
       paperTrading: getEnvBoolean('PAPER_TRADING', true),
     },
     strategy: {
-      type: getEnvVar('STRATEGY', 'COMBINED') as Config['strategy']['type'],
+      type: getStrategyType('STRATEGY', 'COMBINED'),
       rsi: {
         period: getEnvNumber('RSI_PERIOD', 14),
         oversold: getEnvNumber('RSI_OVERSOLD', 30),
