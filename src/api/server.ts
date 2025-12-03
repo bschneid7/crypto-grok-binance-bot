@@ -1,10 +1,20 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { TradingEngine } from '../services/trading-engine';
 import { createApiRouter } from './routes';
+
+// Rate limiter configuration
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 100, // Limit each IP to 100 requests per minute
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+});
 
 export function createServer(tradingEngine: TradingEngine): Application {
   const app = express();
@@ -12,6 +22,7 @@ export function createServer(tradingEngine: TradingEngine): Application {
   // Middleware
   app.use(cors());
   app.use(express.json());
+  app.use(limiter);
 
   // API routes
   app.use('/api', createApiRouter(tradingEngine));
